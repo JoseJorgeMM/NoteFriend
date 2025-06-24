@@ -162,7 +162,7 @@ export default function Home() {
 
         {audioBlob && !isRecording && (
           <p className="text-sm text-gray-500">
-            Selected audio: {audioBlob.name || 'Recorded Audio'} ({(audioBlob.size / 1024 / 1024).toFixed(2)} MB)
+            Selected audio: { (audioBlob instanceof File ? audioBlob.name : 'Recorded Audio') } ({(audioBlob.size / 1024 / 1024).toFixed(2)} MB)
           </p>
         )}
 
