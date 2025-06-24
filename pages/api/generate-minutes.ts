@@ -30,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const mimeType = audioData.split(',')[0].split(':')[1].split(';')[0];
 
 
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Using 1.5-flash as it supports audio
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" }); // Using 1.5-flash as it supports audio
 
       const result = await model.generateContent([
         {
