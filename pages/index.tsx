@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import Image from "next/image";
 import { Geist, Geist_Mono } from "next/font/google";
+import { FaMicrophone } from 'react-icons/fa'; // Import microphone icon
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,9 +22,11 @@ export default function Home() {
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null); // Ref for file input
 
   const startRecording = async () => {
     try {
+      setAudioBlob(null); // Clear any previously uploaded/recorded audio
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorderRef.current = new MediaRecorder(stream);
       audioChunksRef.current = [];
@@ -36,14 +39,13 @@ export default function Home() {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         setAudioBlob(audioBlob);
         setIsRecording(false);
-        // Optional: Revoke the stream to stop microphone access immediately after stopping recording
         stream.getTracks().forEach(track => track.stop());
       };
 
       mediaRecorderRef.current.start();
       setIsRecording(true);
       setError(null);
-      setMeetingMinutes(''); // Clear previous minutes on new recording
+      setMeetingMinutes('');
     } catch (err) {
       console.error('Error starting recording:', err);
       setError('Could not start recording. Please check microphone permissions.');
@@ -56,9 +58,19 @@ export default function Home() {
     }
   };
 
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      const uploadedFile = event.target.files[0];
+      setAudioBlob(uploadedFile); // Set the uploaded file as the audioBlob
+      setError(null);
+      setMeetingMinutes(''); // Clear previous minutes
+      setIsRecording(false); // Ensure recording state is off
+    }
+  };
+
   const sendAudioForMinutes = async () => {
     if (!audioBlob) {
-      setError('No audio recorded to send.');
+      setError('No audio recorded or uploaded to send.');
       return;
     }
 
@@ -102,13 +114,19 @@ export default function Home() {
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start w-full max-w-2xl">
         <h1 className="text-4xl font-bold text-center sm:text-left">Meeting Minutes Generator</h1>
 
-        <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+        <div className="flex flex-col sm:flex-row gap-4 w-full justify-center items-center">
           <button
             onClick={startRecording}
             disabled={isRecording || isLoading}
             className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto"
           >
-            {isRecording ? 'Recording...' : 'Start Recording'}
+            {isRecording ? (
+              <>
+                <FaMicrophone className="text-red-500 animate-flash" /> Recording...
+              </>
+            ) : (
+              'Start Recording'
+            )}
           </button>
           <button
             onClick={stopRecording}
@@ -117,6 +135,22 @@ export default function Home() {
           >
             Stop Recording
           </button>
+
+          <input
+            type="file"
+            accept="audio/*"
+            onChange={handleFileUpload}
+            ref={fileInputRef}
+            className="hidden" // Hide the default file input
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()} // Trigger click on hidden input
+            disabled={isRecording || isLoading}
+            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto"
+          >
+            Upload Audio
+          </button>
+
           <button
             onClick={sendAudioForMinutes}
             disabled={!audioBlob || isRecording || isLoading}
@@ -125,6 +159,12 @@ export default function Home() {
             {isLoading ? 'Generating Minutes...' : 'Generate Minutes'}
           </button>
         </div>
+
+        {audioBlob && !isRecording && (
+          <p className="text-sm text-gray-500">
+            Selected audio: {audioBlob.name || 'Recorded Audio'} ({(audioBlob.size / 1024 / 1024).toFixed(2)} MB)
+          </p>
+        )}
 
         {error && <p className="text-red-500 text-center sm:text-left">Error: {error}</p>}
 
