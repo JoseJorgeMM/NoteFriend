@@ -92,6 +92,9 @@ export default function Home() {
     setIsLoading(true);
     setError(null);
 
+    // Forzar render antes de operaciones pesadas
+    await new Promise(r => setTimeout(r, 0));
+
     try {
       const reader = new FileReader();
       reader.readAsDataURL(audioBlob);
@@ -116,16 +119,16 @@ export default function Home() {
           } else {
             errorMessage = await response.text();
           }
+          setIsLoading(false);
           throw new Error(errorMessage);
         }
 
         const data = await response.json();
         setMeetingMinutes(data.minutes);
+        setIsLoading(false);
       };
     } catch (err: any) {
-      console.error('Error sending audio:', err);
       setError(err.message || 'An error occurred while generating minutes.');
-    } finally {
       setIsLoading(false);
     }
   };
