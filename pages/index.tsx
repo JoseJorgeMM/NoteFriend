@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Image from "next/image";
 import { Geist, Geist_Mono } from "next/font/google";
 import { FaMicrophone } from 'react-icons/fa'; // Import microphone icon
+import { AiOutlineLoading3Quarters } from 'react-icons/ai'; // Import loading icon
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -106,8 +107,16 @@ export default function Home() {
         });
 
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to generate minutes');
+          const contentType = response.headers.get('Content-Type');
+          let errorMessage = 'Failed to generate minutes';
+
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorMessage;
+          } else {
+            errorMessage = await response.text();
+          }
+          throw new Error(errorMessage);
         }
 
         const data = await response.json();
@@ -170,7 +179,13 @@ export default function Home() {
             disabled={!audioBlob || isRecording || isLoading}
             className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-blue-600 text-white gap-2 hover:bg-blue-700 font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto"
           >
-            {isLoading ? 'Generating Minutes...' : 'Generate Minutes'}
+            {isLoading ? (
+              <>
+                <AiOutlineLoading3Quarters className="animate-spin mr-2" /> Generating Minutes...
+              </>
+            ) : (
+              'Generate Minutes'
+            )}
           </button>
         </div>
 
