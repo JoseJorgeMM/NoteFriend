@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Image from "next/image";
 import { Geist, Geist_Mono } from "next/font/google";
 import { FaMicrophone } from 'react-icons/fa'; // Import microphone icon
@@ -16,6 +16,7 @@ const geistMono = Geist_Mono({
 export default function Home() {
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null); // New state for audio URL
   const [meetingMinutes, setMeetingMinutes] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +24,19 @@ export default function Home() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null); // Ref for file input
+
+  // Effect to create and revoke object URL for audio playback
+  useEffect(() => {
+    if (audioBlob) {
+      const url = URL.createObjectURL(audioBlob);
+      setAudioUrl(url);
+      return () => {
+        URL.revokeObjectURL(url);
+      };
+    } else {
+      setAudioUrl(null);
+    }
+  }, [audioBlob]);
 
   const startRecording = async () => {
     try {
@@ -161,9 +175,14 @@ export default function Home() {
         </div>
 
         {audioBlob && !isRecording && (
-          <p className="text-sm text-gray-500">
-            Selected audio: { (audioBlob instanceof File ? audioBlob.name : 'Recorded Audio') } ({(audioBlob.size / 1024 / 1024).toFixed(2)} MB)
-          </p>
+          <div className="mt-4 w-full flex flex-col items-center">
+            <p className="text-sm text-gray-500 mb-2">
+              Selected audio: { (audioBlob instanceof File ? audioBlob.name : 'Recorded Audio') } ({(audioBlob.size / 1024 / 1024).toFixed(2)} MB)
+            </p>
+            {audioUrl && (
+              <audio controls src={audioUrl} className="w-full max-w-md"></audio>
+            )}
+          </div>
         )}
 
         {error && <p className="text-red-500 text-center sm:text-left">Error: {error}</p>}
