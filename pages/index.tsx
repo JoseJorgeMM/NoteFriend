@@ -134,6 +134,20 @@ export default function Home() {
     <div
       className={`${geistSans.className} ${geistMono.className} grid grid-rows-[auto_1fr_auto] items-center justify-items-center min-h-screen p-8 pb-20 gap-8 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
     >
+      {/* Overlay de carga profesional */}
+      {isLoading && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm"
+          style={{ pointerEvents: 'auto' }}
+        >
+          <AiOutlineLoading3Quarters className="animate-spin text-5xl text-white mb-6" />
+          <span className="text-white text-xl font-semibold text-center drop-shadow-lg">
+            Generando el acta, esto puede tardar unos minutos...
+          </span>
+        </div>
+      )}
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start w-full max-w-2xl">
         <h1 className="text-4xl font-bold text-center sm:text-left">Meeting Minutes Generator</h1>
 
