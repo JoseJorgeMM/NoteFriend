@@ -9,7 +9,7 @@ const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: '10mb', // Set a reasonable size limit for audio files
+      sizeLimit: '50mb', // Set a reasonable size limit for audio files
     },
   },
 };
